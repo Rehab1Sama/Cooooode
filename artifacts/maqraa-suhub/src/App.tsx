@@ -15,6 +15,11 @@ const navItems = [
   { href: '/teachers', label: 'المعلّمون', icon: Users },
   { href: '/attendance', label: 'الحضور والغياب', icon: CalendarCheck },
 ];
+const navGroups = [
+  { label: 'الرئيسية', items: [navItems[0]] },
+  { label: 'المجتمع التعليمي', items: [navItems[1], navItems[2]] },
+  { label: 'المتابعة اليومية', items: [navItems[3]] },
+];
 const statusLabels: Record<string, string> = { active: 'نشط', paused: 'متوقف مؤقتاً', completed: 'مكتمل', on_leave: 'في إجازة', present: 'حاضر', absent: 'غائب', late: 'متأخر', excused: 'بعذر' };
 const getInitials = (name: string) => name.trim().split(/\s+/).slice(0, 2).map((word) => word[0]).join('');
 const formatDate = (value?: string) => value ? new Intl.DateTimeFormat('ar-SA', { day: 'numeric', month: 'short' }).format(new Date(value)) : '—';
@@ -23,19 +28,23 @@ const formatTime = (value?: string) => value ? new Intl.DateTimeFormat('ar-SA', 
 function Shell({ children }: { children: ReactNode }) {
   const [location] = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const closeMobileNav = () => setMobileOpen(false);
   return <div className="app-shell" dir="rtl">
     <aside className="sidebar">
        <Link href="/" className="brand" data-testid="link-brand"><span className="brand-logo"><img src={logoAsset} alt="شعار مقرأة سُحُب" /></span><span><div className="brand-title">مقرأة سُحُب</div><div className="brand-subtitle">منصة إدارة التعلّم</div></span></Link>
-      <div className="nav-label">المساحة الإدارية</div>
-      <nav className="nav-list">{navItems.map(({ href, label, icon: Icon }) => <Link key={href} href={href} className={`nav-link ${location === href ? 'active' : ''}`} data-testid={`link-nav-${href === '/' ? 'overview' : href.slice(1)}`}><Icon size={18} strokeWidth={1.8} /><span>{label}</span></Link>)}</nav>
+      <NavGroups location={location} />
       <div className="sidebar-foot"><div className="side-note"><Sparkles size={14} /> <span>مساحة آمنة للنمو</span></div><div>تابع أثر كل حلقة، وامنح كل طالب عناية تليق برحلته.</div></div>
     </aside>
     <div className="main-area">
-      <header className="topbar"><button className="mobile-menu" onClick={() => setMobileOpen((value) => !value)} aria-label="فتح القائمة" data-testid="button-mobile-menu"><Menu size={21} /></button><div className="topbar-meta">{new Intl.DateTimeFormat('ar-SA', { weekday: 'long', day: 'numeric', month: 'long' }).format(new Date())}</div><div className="user-chip"><div><div className="user-name">إدارة المقرأة</div><div className="user-role">المشرف العام</div></div><div className="avatar">م</div></div></header>
-      {mobileOpen && <div className="mobile-nav">{navItems.map(({ href, label, icon: Icon }) => <Link key={href} href={href} onClick={() => setMobileOpen(false)} className={`nav-link ${location === href ? 'active' : ''}`} data-testid={`link-mobile-nav-${href === '/' ? 'overview' : href.slice(1)}`}><Icon size={18} /><span>{label}</span></Link>)}</div>}
+      <header className="topbar"><button className="mobile-menu" onClick={() => setMobileOpen((value) => !value)} aria-label="فتح القائمة" aria-expanded={mobileOpen} data-testid="button-mobile-menu"><Menu size={21} /></button><div className="topbar-date">{new Intl.DateTimeFormat('ar-SA', { weekday: 'long', day: 'numeric', month: 'long' }).format(new Date())}</div><div className="user-chip"><div><div className="user-name">إدارة المقرأة</div><div className="user-role">المشرف العام</div></div><div className="avatar">م</div></div></header>
+      {mobileOpen && <div className="mobile-drawer-layer" onMouseDown={(event) => event.target === event.currentTarget && closeMobileNav()}><aside className="mobile-drawer" aria-label="القائمة الرئيسية"><div className="drawer-top"><Link href="/" className="brand" onClick={closeMobileNav} data-testid="link-mobile-brand"><span className="brand-logo"><img src={logoAsset} alt="شعار مقرأة سُحُب" /></span><span><div className="brand-title">مقرأة سُحُب</div><div className="brand-subtitle">منصة إدارة التعلّم</div></span></Link><button className="icon-button drawer-close" onClick={closeMobileNav} aria-label="إغلاق القائمة" data-testid="button-close-mobile-menu"><X size={19} /></button></div><NavGroups location={location} mobile onNavigate={closeMobileNav} /><div className="sidebar-foot"><div className="side-note"><Sparkles size={14} /> <span>مساحة آمنة للنمو</span></div><div>تابع أثر كل حلقة، وامنح كل طالب عناية تليق برحلته.</div></div></aside></div>}
       {children}
     </div>
   </div>;
+}
+
+function NavGroups({ location, mobile = false, onNavigate }: { location: string; mobile?: boolean; onNavigate?: () => void }) {
+  return <nav className={`nav-groups ${mobile ? 'nav-groups-mobile' : ''}`} aria-label="التنقل الإداري">{navGroups.map((group) => <div className="nav-group" key={group.label}><div className="nav-label">{group.label}</div><div className="nav-list">{group.items.map(({ href, label, icon: Icon }) => <Link key={href} href={href} onClick={onNavigate} className={`nav-link ${location === href ? 'active' : ''}`} data-testid={`${mobile ? 'link-mobile-nav' : 'link-nav'}-${href === '/' ? 'overview' : href.slice(1)}`}><Icon size={18} strokeWidth={1.8} /><span>{label}</span></Link>)}</div></div>)}</nav>;
 }
 
 function LoadingBlock({ rows = 4 }: { rows?: number }) { return <div className="card table-card" data-testid="loading-state">{Array.from({ length: rows }).map((_, index) => <div key={index} className="skeleton" style={{ height: 62, margin: 1 }} />)}</div>; }
@@ -57,11 +66,10 @@ function Dashboard() {
       <Stat label="المعلّمون" value={stats.teachersCount} foot="فريق يعلّم بأثر" />
       <Stat label="نسبة الحضور" value={`${stats.attendanceRate}%`} foot="متوسط آخر 30 يوماً" />
       <Stat label="تقدّم هذا الشهر" value={`${stats.monthlyProgress}%`} foot="تحسّن عن الشهر السابق" />
-    </div><div className="dashboard-grid animate-rise delay-2">
-      <section className="card wide-card"><div className="card-heading"><div><div className="card-title">إيقاع الحضور الأسبوعي</div><div className="card-subtitle">نسبة الالتزام في حلقات هذا الأسبوع</div></div><span className="badge badge-present">هذا الأسبوع</span></div><WeeklyChart values={stats.weeklyAttendance || []} /></section>
-      <section className="card wide-card"><div className="card-heading"><div><div className="card-title">توزيع المستويات</div><div className="card-subtitle">عدد الطلاب في كل مستوى</div></div><GraduationCap size={19} color="hsl(13 56% 52%)" /></div><Breakdown values={stats.levelBreakdown || []} /></section>
-    </div></>}
-    <div className="bottom-grid animate-rise delay-3"><section className="card wide-card"><div className="card-heading"><div><div className="card-title">آخر ما جرى</div><div className="card-subtitle">إشارات صغيرة تصنع الصورة كاملة</div></div><Activity size={18} color="hsl(13 56% 52%)" /></div>{activity.isLoading ? <div className="skeleton" style={{ height: 190 }} /> : activity.isError ? <ErrorState onRetry={() => activity.refetch()} /> : !activity.data?.length ? <EmptyState title="لا توجد أنشطة بعد" copy="ستظهر هنا آخر مستجدات مجتمع المقرأة." /> : <ActivityList items={activity.data} />}</section><section className="card wide-card"><div className="card-heading"><div><div className="card-title">بوابة المتابعة</div><div className="card-subtitle">اختصارات إلى أكثر ما يحتاج انتباهك</div></div><Settings2 size={18} color="hsl(13 56% 52%)" /></div><div className="breakdown-list"><QuickLink href="/students" icon={<GraduationCap size={18} />} title="استعراض الطلاب" copy="راجع تقدّم الطلاب وحالاتهم الحالية" /><QuickLink href="/teachers" icon={<Users size={18} />} title="فريق التعليم" copy="تعرّف على توزيع الأدوار والحلقات" /><QuickLink href="/attendance" icon={<CalendarCheck size={18} />} title="سجل الحضور" copy="أضف سجلاً أو راجع تاريخ الالتزام" /></div></section></div>
+    </div><div className="focus-grid animate-rise delay-2"><section className="card wide-card focus-card"><div className="card-heading"><div><div className="section-kicker">مساحة العمل اليومية</div><div className="card-title">بوابة المتابعة</div><div className="card-subtitle">ابدأ من هنا للوصول إلى أكثر ما يحتاج انتباهك اليوم</div></div><Settings2 size={19} color="hsl(222 64% 44%)" /></div><div className="quick-links"><QuickLink href="/students" icon={<GraduationCap size={18} />} title="استعراض الطلاب" copy="راجع تقدّم الطلاب وحالاتهم الحالية" /><QuickLink href="/teachers" icon={<Users size={18} />} title="فريق التعليم" copy="تعرّف على توزيع الأدوار والحلقات" /><QuickLink href="/attendance" icon={<CalendarCheck size={18} />} title="سجل الحضور" copy="أضف سجلاً أو راجع تاريخ الالتزام" /></div></section><section className="card wide-card focus-card"><div className="card-heading"><div><div className="section-kicker">آخر المستجدات</div><div className="card-title">آخر ما جرى</div><div className="card-subtitle">إشارات صغيرة تصنع الصورة كاملة</div></div><Activity size={18} color="hsl(222 64% 44%)" /></div>{activity.isLoading ? <div className="skeleton" style={{ height: 190 }} /> : activity.isError ? <ErrorState onRetry={() => activity.refetch()} /> : !activity.data?.length ? <EmptyState title="لا توجد أنشطة بعد" copy="ستظهر هنا آخر مستجدات مجتمع المقرأة." /> : <ActivityList items={activity.data} />}</section></div><div className="dashboard-grid animate-rise delay-3">
+       <section className="card wide-card"><div className="card-heading"><div><div className="section-kicker">قراءة أسبوعية</div><div className="card-title">إيقاع الحضور الأسبوعي</div><div className="card-subtitle">نسبة الالتزام في حلقات هذا الأسبوع</div></div><span className="badge badge-present">هذا الأسبوع</span></div><WeeklyChart values={stats.weeklyAttendance || []} /></section>
+       <section className="card wide-card"><div className="card-heading"><div><div className="section-kicker">صورة المجتمع</div><div className="card-title">توزيع المستويات</div><div className="card-subtitle">عدد الطلاب في كل مستوى</div></div><GraduationCap size={19} color="hsl(222 64% 44%)" /></div><Breakdown values={stats.levelBreakdown || []} /></section>
+     </div></>}
   </main>;
 }
 function Stat({ label, value, foot }: { label: string; value: string | number; foot: string }) { return <div className="card stat-card"><div className="stat-label">{label}</div><div className="stat-number" data-testid={`stat-${label}`}>{value}</div><div className="stat-foot">{foot}</div></div>; }
