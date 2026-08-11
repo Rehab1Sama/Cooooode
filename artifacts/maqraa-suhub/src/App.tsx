@@ -6,6 +6,7 @@ import { Activity, AlertCircle, ArrowLeft, BookOpen, CalendarCheck, Check, Chevr
 import { useCreateStudent, useCreateTeacher, useDeleteStudent, useGetActivity, useGetDashboardSummary, useListAttendance, useListStudents, useListTeachers, useRecordAttendance, useUpdateStudent, useUpdateTeacher, getGetActivityQueryKey, getGetDashboardSummaryQueryKey, getListAttendanceQueryKey, getListStudentsQueryKey, getListTeachersQueryKey } from '@workspace/api-client-react';
 import type { AttendanceRecord, Student, Teacher } from '@workspace/api-client-react';
 import NotFound from '@/pages/not-found';
+import logoAsset from '@assets/68aebd1177e203ded722cb6fb392d53f684b0ea0112396a73153f9ee7969f1_1786411553048.png';
 
 const queryClient = new QueryClient();
 const navItems = [
@@ -24,7 +25,7 @@ function Shell({ children }: { children: ReactNode }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   return <div className="app-shell" dir="rtl">
     <aside className="sidebar">
-      <Link href="/" className="brand" data-testid="link-brand"><span className="brand-mark">س</span><span><div className="brand-title">مقرأة سُحُب</div><div className="brand-subtitle">منصة إدارة التعلّم</div></span></Link>
+       <Link href="/" className="brand" data-testid="link-brand"><span className="brand-logo"><img src={logoAsset} alt="شعار مقرأة سُحُب" /></span><span><div className="brand-title">مقرأة سُحُب</div><div className="brand-subtitle">منصة إدارة التعلّم</div></span></Link>
       <div className="nav-label">المساحة الإدارية</div>
       <nav className="nav-list">{navItems.map(({ href, label, icon: Icon }) => <Link key={href} href={href} className={`nav-link ${location === href ? 'active' : ''}`} data-testid={`link-nav-${href === '/' ? 'overview' : href.slice(1)}`}><Icon size={18} strokeWidth={1.8} /><span>{label}</span></Link>)}</nav>
       <div className="sidebar-foot"><div className="side-note"><Sparkles size={14} /> <span>مساحة آمنة للنمو</span></div><div>تابع أثر كل حلقة، وامنح كل طالب عناية تليق برحلته.</div></div>
@@ -48,8 +49,9 @@ function Dashboard() {
   const summary = useGetDashboardSummary();
   const activity = useGetActivity({ limit: 6 });
   const stats = summary.data;
-  return <main className="page-wrap">
+   return <main className="page-wrap">
     <PageHeading eyebrow="صباح الخير، إدارة المقرأة" title="أثرٌ يُرى، وعنايةٌ تُبنى" description="نظرة هادئة على نبض مجتمع سُحُب التعليمي اليوم." action={<Link href="/attendance" className="button button-primary" data-testid="button-go-attendance"><ClipboardList size={16} /> تسجيل حضور اليوم</Link>} />
+     <div className="signal-banner animate-rise" data-testid="dashboard-signal"><div className="signal-copy"><div className="signal-mark"><Sparkles size={16} /></div><div><strong>مساحتك اليومية جاهزة للمتابعة</strong><span>تفقّد المؤشرات الأساسية، ثم اقترب من التفاصيل التي تحتاج قرارك.</span></div></div><Link href="/students" className="button button-secondary" data-testid="button-review-students">مراجعة الطلاب</Link></div>
     {summary.isLoading ? <div className="stat-grid">{Array.from({ length: 4 }).map((_, i) => <div className="card stat-card skeleton" key={i} style={{ height: 142 }} />)}</div> : summary.isError ? <ErrorState onRetry={() => summary.refetch()} /> : stats && <><div className="stat-grid animate-rise delay-1">
       <Stat label="إجمالي الطلاب" value={stats.studentsCount} foot={`${stats.activeStudentsCount} طالباً في رحلة نشطة`} />
       <Stat label="المعلّمون" value={stats.teachersCount} foot="فريق يعلّم بأثر" />
