@@ -1,6 +1,6 @@
-# [Project name]
+# مقرأة سُحُب
 
-_Replace the heading above with the project's name, and this line with one sentence describing what this app does for users._
+منصة داخلية راقية لإدارة مقرأة قرآنية ومتابعة الطلاب والمعلمين والحضور والإنجاز.
 
 ## Run & Operate
 
@@ -22,23 +22,35 @@ _Replace the heading above with the project's name, and this line with one sente
 
 ## Where things live
 
-_Populate as you build — short repo map plus pointers to the source-of-truth file for DB schema, API contracts, theme files, etc._
+- `artifacts/maqraa-suhub` — واجهة المنصة ومسارات لوحة الإدارة.
+- `artifacts/api-server` — API المقرأة ومسارات الطلاب والمعلمين والحضور.
+- `lib/api-spec/openapi.yaml` — المصدر الوحيد لعقود API.
+- `lib/db/src/schema/maqraa.ts` — جداول بيانات المقرأة.
+- `artifacts/maqraa-suhub/src/index.css` — نظام الألوان والخطوط والهوية البصرية.
 
 ## Architecture decisions
 
-_Populate as you build — non-obvious choices a reader couldn't infer from the code (3-5 bullets)._
+- تبدأ المنصة بنطاق داخلي للمقرأة، مع فصل واضح بين الطلاب والمعلمين والإدارة.
+- تُعرّف الواجهات في OpenAPI أولًا ثم تُولّد hooks وZod schemas منها.
+- بيانات الحضور والطلاب تستخدم تواريخ تقويمية/زمنية واضحة لتفادي مشاكل المناطق الزمنية.
 
 ## Product
 
-_Describe the high-level user-facing capabilities of this app once they exist._
+- لوحة نظرة عامة تعرض أعداد الطلاب والمعلمين، نسبة الحضور، التقدم الشهري، توزيع المستويات، وآخر النشاط.
+- إدارة الطلاب مع البحث والتصفية والإضافة والتعديل والحذف.
+- إدارة المعلمين مع الإضافة والتعديل.
+- سجل حضور مع التصفية والتسجيل وملاحظات الغياب أو التأخر.
 
 ## User preferences
 
-_Populate as you build — explicit user instructions worth remembering across sessions._
+- اسم المنتج: مقرأة سُحُب.
+- الجمهور الأول: مقرأة واحدة بإدارة داخلية.
+- الطابع المرغوب: راقٍ وفخم ومميز.
 
 ## Gotchas
 
-_Populate as you build — sharp edges, "always run X before Y" rules._
+- بعد تعديل `lib/api-spec/openapi.yaml` يجب تشغيل `pnpm --filter @workspace/api-spec run codegen`.
+- تشغيل الخدمات يتم عبر workflows الخاصة بـ API Server وواجهة مقرأة سُحُب.
 
 ## Pointers
 
